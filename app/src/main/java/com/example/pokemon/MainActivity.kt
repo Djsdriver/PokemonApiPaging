@@ -2,7 +2,6 @@ package com.example.pokemon
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -15,7 +14,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.pokemon.presentation.PokemonList
+import com.example.pokemon.presentation.PokemonListView
 import com.example.pokemon.presentation.PokemonListScreenViewModel
 import com.example.pokemon.ui.theme.PokemonTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -29,10 +28,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val viewmodel = hiltViewModel<PokemonListScreenViewModel>()
-            val state= viewmodel.state.collectAsState()
             PokemonTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) {
-                    PokemonList(viewmodel)
+                    PokemonListView(
+                        viewModel = viewmodel,
+                        onEvent = viewmodel::onEvent)
                 }
             }
             LaunchedEffect(key1 = Unit) {

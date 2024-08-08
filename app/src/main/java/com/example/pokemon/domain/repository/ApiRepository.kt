@@ -17,7 +17,7 @@ interface ApiRepository {
         offset: Int,
     ) : Flow<PokemonList>
 
-    fun getPokemonListPaging() : Flow<PagingData<ResultDto>>
+    fun getPokemonListPaging() : Flow<PagingData<Result>>
 
     /*suspend fun getPokemonDetails(
         name: String

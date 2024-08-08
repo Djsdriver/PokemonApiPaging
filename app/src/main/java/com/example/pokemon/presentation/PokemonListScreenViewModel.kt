@@ -24,7 +24,22 @@ class PokemonListScreenViewModel @Inject constructor(private val api: ApiReposit
     private val _state = MutableStateFlow(State())
     val state = _state.asStateFlow()
 
-    val pokemonResult : Flow<PagingData<ResultDto>> = api.getPokemonListPaging()
+
+    fun onEvent(pokemonListEvent: PokemonListEvent){
+        when(pokemonListEvent){
+            is PokemonListEvent.ShowPokemonListPaging -> {
+                viewModelScope.launch {
+                    val pokemon = api.getPokemonListPaging()
+                    _state.update {
+                        it.copy(
+                            list = pokemon
+                        )
+                    }
+                }
+
+                }
+            }
+        }
 
     fun getPokemonImageUrl(pokemonItem: Result): String {
         val number = if (pokemonItem.url.endsWith("/")) {

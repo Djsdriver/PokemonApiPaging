@@ -27,7 +27,7 @@ class ApiRepositoryImpl @Inject constructor(private val api: Api): ApiRepository
         emit(list)*/
     }
 
-    override fun getPokemonListPaging(): Flow<PagingData<ResultDto>> {
+    override fun getPokemonListPaging(): Flow<PagingData<Result>> {
         return Pager(
             config = PagingConfig(pageSize = 20),
             pagingSourceFactory = { PokemonPagingSource(api)}

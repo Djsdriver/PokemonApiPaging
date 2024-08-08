@@ -7,23 +7,23 @@ import com.example.pokemon.data.api.Api
 import com.example.pokemon.data.models.PokemonListDto
 import com.example.pokemon.data.models.ResultDto
 import com.example.pokemon.domain.model.Result
+import com.example.pokemon.utils.toResult
 import javax.inject.Inject
 
 class PokemonPagingSource @Inject constructor(
     private val api: Api
-) :PagingSource<Int,ResultDto>() {
-    override fun getRefreshKey(state: PagingState<Int, ResultDto>): Int? {
+) :PagingSource<Int,Result>() {
+    override fun getRefreshKey(state: PagingState<Int, Result>): Int? {
         return state.anchorPosition
     }
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ResultDto> {
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Result> {
         return try {
             val offset = params.key ?: 0
             val limit = params.loadSize
             val response = api.getPokemonList(limit, offset)
 
-            // Предполагая, что ваш ответ содержит поля count, next, previous и results
-            val pokemons = response.results // Получаем массив из объекта
+            val pokemons = response.results.map { it.toResult() } // Получаем массив из объекта
 
             LoadResult.Page(
                 data = pokemons,
