@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt.plugin)
+    alias(libs.plugins.serialization.plugin)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
@@ -64,6 +66,7 @@ dependencies {
     implementation(libs.viewmodel)
     implementation(libs.paging3)
     implementation(libs.paging3compose)
+    implementation(libs.kotlinx.serialization.json)
     ksp(libs.room.compiler)
     ksp(libs.dagger.hilt.compiler)
 

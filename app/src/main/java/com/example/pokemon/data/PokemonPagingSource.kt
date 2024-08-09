@@ -12,28 +12,34 @@ import javax.inject.Inject
 
 class PokemonPagingSource @Inject constructor(
     private val api: Api
-) :PagingSource<Int,Result>() {
+) : PagingSource<Int, Result>() {
+
+    // Установим фиксированный лимит на 20 покемонов
+    private companion object {
+        const val PAGE_SIZE = 20
+    }
+
     override fun getRefreshKey(state: PagingState<Int, Result>): Int? {
-        return state.anchorPosition
+        return state.anchorPosition?.let { state.closestPageToPosition(it)?.nextKey?.minus(PAGE_SIZE) }
     }
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Result> {
         return try {
-            val offset = params.key ?: 0
-            val limit = params.loadSize
-            val response = api.getPokemonList(limit, offset)
+            // Используем params.key ?: 0 для начальной загрузки
+            val page = params.key ?: 0
+            val response = api.getPokemonList(PAGE_SIZE, page)
 
-            val pokemons = response.results.map { it.toResult() } // Получаем массив из объекта
+            // Преобразуем ответ в нужный формат
+            val pokemons = response.results.map { it.toResult() }
 
             LoadResult.Page(
                 data = pokemons,
-                nextKey = if (response.next != null) offset + limit else null,
-                prevKey = if (offset == 0) null else offset - limit
+                nextKey = page + PAGE_SIZE,
+                prevKey = if (page == 0) null else page - PAGE_SIZE
             )
         } catch (e: Exception) {
+            Log.e("PokemonPagingSource", "Error loading data", e)
             LoadResult.Error(e)
         }
     }
-
-
 }

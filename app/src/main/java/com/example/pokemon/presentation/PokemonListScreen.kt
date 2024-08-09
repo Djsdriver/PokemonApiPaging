@@ -16,12 +16,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,19 +36,27 @@ import androidx.paging.map
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.pokemon.data.models.ResultDto
+import com.example.pokemon.domain.PokemonDetails
 import com.example.pokemon.domain.model.Result
 
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun PokemonListView(viewModel: PokemonListScreenViewModel, onEvent: (PokemonListEvent) -> Unit) {
+fun PokemonListView(
+    onClick: (PokemonDetails) -> Unit,
+    viewModel: PokemonListScreenViewModel,
+    onEvent: (PokemonListEvent) -> Unit
+) {
     val state = viewModel.state.collectAsState()
     val pokemonList = state.value.list.collectAsLazyPagingItems()
 
     LaunchedEffect(Unit) {
         onEvent(PokemonListEvent.ShowPokemonListPaging(state.value.list))
     }
-    PokemonList(pokemonList = pokemonList, viewModel)
+    PokemonList(
+        pokemonList = pokemonList,
+        viewModel = viewModel,
+        onClick = onClick)
 
     SideEffect {
         Log.d("Recomposition", "Recomposition PokemonListView")
@@ -56,35 +67,48 @@ fun PokemonListView(viewModel: PokemonListScreenViewModel, onEvent: (PokemonList
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun PokemonList(pokemonList: LazyPagingItems<Result>, viewModel: PokemonListScreenViewModel) {
+fun PokemonList(
+    onClick: (PokemonDetails) -> Unit,
+    pokemonList: LazyPagingItems<Result>,
+    viewModel: PokemonListScreenViewModel
+) {
     SideEffect {
         Log.d("Recomposition", "Recomposition PokemonList")
     }
+
     Scaffold(modifier = Modifier.fillMaxSize()) {
+        // Проверяем состояние загрузки
+        if (pokemonList.itemCount == 0) {
+            // Если данные еще не загружены, отображаем индикатор загрузки
+            CircularProgressIndicator()
+            return@Scaffold // Пропускаем дальнейший рендеринг
+        }
+        var count = 0
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             modifier = Modifier.fillMaxSize()
         ) {
             items(pokemonList.itemCount,
-                key = { item ->
-                    pokemonList[item]?.name ?: ""
-                },
-                contentType = {
-                    pokemonList[it]?.name
-                }) {
-                pokemonList[it].let { model ->
-                    if (model != null) {
-                        PokemonItemForList(pokemonItem = model, viewModel = viewModel)
-                    }
+                key = { index ->
+                    pokemonList[index]?.name ?: ""
                 }
-
+            ) { index ->
+                pokemonList[index]?.let { model ->
+                    PokemonItemForList(pokemonItem = model, viewModel = viewModel, onClick = {
+                        onClick(
+                            PokemonDetails(model.name)
+                        )
+                    })
+                    Log.d("Model${count++}", "${model}")
+                }
             }
 
+            // Обработка состояния загрузки или ошибки
             item {
                 when (val state = pokemonList.loadState.refresh) {
                     is LoadState.Error -> {
-                        state.error
+                        Text(text = "Error: ${state.error.localizedMessage}", color = Color.Red)
                     }
 
                     is LoadState.Loading -> {
@@ -95,15 +119,24 @@ fun PokemonList(pokemonList: LazyPagingItems<Result>, viewModel: PokemonListScre
                 }
             }
         }
-
     }
 }
 
+
 @Composable
-fun PokemonItemForList(pokemonItem: Result, viewModel: PokemonListScreenViewModel) {
-    val imageUrl = viewModel.getPokemonImageUrl(pokemonItem)
-    SideEffect {
-        Log.d("Recomposition", "Recomposition PokemonItemForList")
+@NonRestartableComposable
+fun PokemonItemForList(
+    onClick: () -> Unit,
+    pokemonItem: Result,
+    viewModel: PokemonListScreenViewModel
+) {
+    val imageUrl = remember(pokemonItem.url) { viewModel.getPokemonImageUrl(pokemonItem) }
+    val context = LocalContext.current
+    val imageBuilder = remember {
+        ImageRequest.Builder(context)
+            .data(imageUrl)
+            .crossfade(true)
+            .build()
     }
 
     Box(
@@ -111,26 +144,22 @@ fun PokemonItemForList(pokemonItem: Result, viewModel: PokemonListScreenViewMode
             .size(100.dp)
             .shadow(5.dp, RoundedCornerShape(10.dp))
             .clip(RoundedCornerShape(10.dp))
-            .clickable {
-
-            }
-            .fillMaxSize(), // Заполняем Box
-        contentAlignment = Alignment.Center // Выравниваем содержимое по центру
+            .clickable { onClick() }
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
     ) {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally // Выравниваем содержимое внутри Column по центру
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AsyncImage(
+                model = imageBuilder,
+                contentDescription = pokemonItem.name,
                 modifier = Modifier
                     .size(60.dp)
-                    .padding(10.dp),
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(imageUrl)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = pokemonItem.name
+                    .padding(10.dp)
             )
             Text(text = pokemonItem.name, fontSize = 12.sp)
         }
     }
 }
+

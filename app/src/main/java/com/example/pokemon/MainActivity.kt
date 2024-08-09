@@ -14,6 +14,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.compose.rememberNavController
+import com.example.pokemon.navigation.RootGraph
 import com.example.pokemon.presentation.PokemonListView
 import com.example.pokemon.presentation.PokemonListScreenViewModel
 import com.example.pokemon.ui.theme.PokemonTheme
@@ -28,32 +30,13 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val viewmodel = hiltViewModel<PokemonListScreenViewModel>()
+            val navController = rememberNavController()
             PokemonTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) {
-                    PokemonListView(
-                        viewModel = viewmodel,
-                        onEvent = viewmodel::onEvent)
+                    RootGraph(navController = navController)
                 }
-            }
-            LaunchedEffect(key1 = Unit) {
-
             }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    PokemonTheme {
-        Greeting("Android")
-    }
-}
