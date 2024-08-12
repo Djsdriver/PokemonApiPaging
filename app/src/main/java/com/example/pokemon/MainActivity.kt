@@ -16,7 +16,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 import com.example.pokemon.navigation.RootGraph
-import com.example.pokemon.presentation.PokemonListView
 import com.example.pokemon.presentation.PokemonListScreenViewModel
 import com.example.pokemon.ui.theme.PokemonTheme
 import dagger.hilt.android.AndroidEntryPoint

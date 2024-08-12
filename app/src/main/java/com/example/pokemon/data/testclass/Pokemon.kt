@@ -1,11 +1,6 @@
-package com.example.pokemon.domain.model
+package com.example.pokemon.data.testclass
 
-import com.example.pokemon.data.models.Ability
-import com.example.pokemon.data.models.Form
-import com.example.pokemon.data.models.GameIndice
-import com.example.pokemon.data.models.Move
-import com.example.pokemon.data.models.Species
-import com.example.pokemon.data.models.Type
+
 import com.google.gson.annotations.SerializedName
 
 data class Pokemon(

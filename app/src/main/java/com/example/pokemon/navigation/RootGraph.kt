@@ -1,5 +1,6 @@
 package com.example.pokemon.navigation
 
+import androidx.compose.animation.core.withInfiniteAnimationFrameNanos
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
@@ -9,6 +10,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.example.pokemon.domain.PokemonDetails
 import com.example.pokemon.presentation.PokemonInfo
+import com.example.pokemon.presentation.PokemonInfoViewModel
+import com.example.pokemon.presentation.PokemonList
 import com.example.pokemon.presentation.PokemonListScreenViewModel
 import com.example.pokemon.presentation.PokemonListView
 
@@ -41,7 +44,11 @@ fun NavGraphBuilder.pokemonHomeList(navController: NavHostController){
 
 fun NavGraphBuilder.pokemonInfo(navController: NavHostController) {
     composable<PokemonDetails>{ backStackEntry ->
+        val viewModel = hiltViewModel<PokemonInfoViewModel>()
         val name : PokemonDetails = backStackEntry.toRoute()
-        PokemonInfo(name)
+        PokemonInfo(name,viewModel, viewModel::onEvent){
+            navController.navigateUp()
+        }
     }
 }
+

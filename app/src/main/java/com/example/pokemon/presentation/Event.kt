@@ -9,5 +9,5 @@ import kotlinx.coroutines.flow.Flow
 sealed class PokemonListEvent{
 
     @Stable
-    class ShowPokemonListPaging(val list : Flow<PagingData<Result>>): PokemonListEvent()
+    data object ShowPokemonListPaging: PokemonListEvent()
 }

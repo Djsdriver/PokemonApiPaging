@@ -1,5 +1,7 @@
 package com.example.pokemon.data.models
 
+import com.example.pokemon.domain.model.Sprites
+import com.example.pokemon.domain.model.Stat
 import com.google.gson.annotations.SerializedName
 
 data class PokemonDto(

@@ -8,8 +8,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
@@ -19,12 +23,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,31 +45,35 @@ import coil.request.ImageRequest
 import com.example.pokemon.data.models.ResultDto
 import com.example.pokemon.domain.PokemonDetails
 import com.example.pokemon.domain.model.Result
+import kotlinx.coroutines.flow.toList
 
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun PokemonListView(
     onClick: (PokemonDetails) -> Unit,
     viewModel: PokemonListScreenViewModel,
     onEvent: (PokemonListEvent) -> Unit
 ) {
-    val state = viewModel.state.collectAsState()
-    val pokemonList = state.value.list.collectAsLazyPagingItems()
+    val lazyListState = rememberLazyGridState()
+    val state by viewModel.state.collectAsState()
+    val pokemonList = state.list.collectAsLazyPagingItems()
 
-    LaunchedEffect(Unit) {
-        onEvent(PokemonListEvent.ShowPokemonListPaging(state.value.list))
+    //перенес получение списка в блок инит
+    /*LaunchedEffect(Unit) {
+        onEvent(PokemonListEvent.ShowPokemonListPaging)
+    }*/
+
+    SideEffect {
+        Log.d("Recomposition", "PokemonListView")
     }
+
+
     PokemonList(
         pokemonList = pokemonList,
         viewModel = viewModel,
-        onClick = onClick)
-
-    SideEffect {
-        Log.d("Recomposition", "Recomposition PokemonListView")
-    }
-
-
+        onClick = onClick,
+        lazyGridState = lazyListState
+    )
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -70,41 +81,35 @@ fun PokemonListView(
 fun PokemonList(
     onClick: (PokemonDetails) -> Unit,
     pokemonList: LazyPagingItems<Result>,
-    viewModel: PokemonListScreenViewModel
+    viewModel: PokemonListScreenViewModel,
+    lazyGridState: LazyGridState
 ) {
     SideEffect {
-        Log.d("Recomposition", "Recomposition PokemonList")
+        Log.d("Recomposition", "PokemonList")
     }
-
     Scaffold(modifier = Modifier.fillMaxSize()) {
-        // Проверяем состояние загрузки
         if (pokemonList.itemCount == 0) {
-            // Если данные еще не загружены, отображаем индикатор загрузки
             CircularProgressIndicator()
-            return@Scaffold // Пропускаем дальнейший рендеринг
+            return@Scaffold
         }
-        var count = 0
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            state = lazyGridState
         ) {
-            items(pokemonList.itemCount,
-                key = { index ->
-                    pokemonList[index]?.name ?: ""
-                }
-            ) { index ->
+            items(pokemonList.itemCount, key = { index ->
+                pokemonList[index]?.name ?: ""
+            }) { index ->
                 pokemonList[index]?.let { model ->
                     PokemonItemForList(pokemonItem = model, viewModel = viewModel, onClick = {
-                        onClick(
-                            PokemonDetails(model.name)
-                        )
+                        onClick(PokemonDetails(model.name))
+                        Log.d("cachedPokemonList", "${model}")
                     })
-                    Log.d("Model${count++}", "${model}")
                 }
             }
 
-            // Обработка состояния загрузки или ошибки
+            // Error and loading states
             item {
                 when (val state = pokemonList.loadState.refresh) {
                     is LoadState.Error -> {
@@ -122,7 +127,6 @@ fun PokemonList(
     }
 }
 
-
 @Composable
 @NonRestartableComposable
 fun PokemonItemForList(
@@ -130,6 +134,10 @@ fun PokemonItemForList(
     pokemonItem: Result,
     viewModel: PokemonListScreenViewModel
 ) {
+    SideEffect {
+        Log.d("Recomposition", "PokemonItemForList")
+    }
+
     val imageUrl = remember(pokemonItem.url) { viewModel.getPokemonImageUrl(pokemonItem) }
     val context = LocalContext.current
     val imageBuilder = remember {
@@ -162,4 +170,3 @@ fun PokemonItemForList(
         }
     }
 }
-

@@ -1,14 +1,19 @@
 package com.example.pokemon.domain.model
 
+import com.example.pokemon.data.testclass.Other
+import com.example.pokemon.data.testclass.Versions
+import com.google.gson.annotations.SerializedName
+
+
 data class Sprites(
-    val back_default: String,
-    val back_female: Any,
-    val back_shiny: String,
-    val back_shiny_female: Any,
-    val front_default: String,
-    val front_female: Any,
-    val front_shiny: String,
-    val front_shiny_female: Any,
+    val backDefault: String,
+    val backFemale: Any,
+    val backShiny: String,
+    val backShinyFemale: Any,
+    val frontDefault: String,
+    val frontFemale: Any,
+    val frontShiny: String,
+    val frontShinyFemale: Any,
     val other: Other,
     val versions: Versions
 )

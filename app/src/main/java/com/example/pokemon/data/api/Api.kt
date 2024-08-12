@@ -2,7 +2,9 @@ package com.example.pokemon.data.api
 
 import com.example.pokemon.data.models.PokemonDto
 import com.example.pokemon.data.models.PokemonListDto
+import com.example.pokemon.data.testclass.Pokemon
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface Api {
@@ -15,7 +17,7 @@ interface Api {
 
     @GET("pokemon/{name}")
     suspend fun getPokemonDetails(
-        @Query("name") name: String
-    ) : PokemonDto
+        @Path("name") name: String
+    ) : Pokemon
 
 }

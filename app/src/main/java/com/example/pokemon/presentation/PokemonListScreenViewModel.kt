@@ -1,9 +1,13 @@
 package com.example.pokemon.presentation
 
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import androidx.paging.flatMap
 import com.example.pokemon.data.models.PokemonListDto
 import com.example.pokemon.data.models.ResultDto
@@ -24,22 +28,28 @@ class PokemonListScreenViewModel @Inject constructor(private val api: ApiReposit
     private val _state = MutableStateFlow(State())
     val state = _state.asStateFlow()
 
+    init {
+        getListPokemon()
+    }
 
-    fun onEvent(pokemonListEvent: PokemonListEvent){
-        when(pokemonListEvent){
+    fun onEvent(pokemonListEvent: PokemonListEvent) {
+        when (pokemonListEvent) {
             is PokemonListEvent.ShowPokemonListPaging -> {
-                viewModelScope.launch {
-                    val pokemon = api.getPokemonListPaging()
-                    _state.update {
-                        it.copy(
-                            list = pokemon
-                        )
-                    }
-                }
-
-                }
+               getListPokemon()
             }
         }
+    }
+
+    private fun getListPokemon() {
+        viewModelScope.launch {
+            val pokemon = api.getPokemonListPaging().cachedIn(viewModelScope)
+            _state.update {
+                it.copy(
+                    list = pokemon
+                )
+            }
+        }
+    }
 
     fun getPokemonImageUrl(pokemonItem: Result): String {
         val number = if (pokemonItem.url.endsWith("/")) {
@@ -49,12 +59,6 @@ class PokemonListScreenViewModel @Inject constructor(private val api: ApiReposit
         }
         return "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$number.png"
     }
-
-
-
-
-
-
 
 
 }
