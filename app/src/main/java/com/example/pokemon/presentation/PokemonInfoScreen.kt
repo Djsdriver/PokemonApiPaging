@@ -39,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.pokemon.domain.PokemonDetails
@@ -53,8 +54,8 @@ import com.example.pokemon.utils.parseStatToColor
 @Composable
 fun PokemonInfo(
     name: PokemonDetails,
-    viewModel: PokemonInfoViewModel,
-    onEvent: (PokemonEventInfo) -> Unit,
+    viewModel: PokemonInfoViewModel = hiltViewModel<PokemonInfoViewModel>(),
+    onEvent: (PokemonEventInfo) -> Unit = viewModel::onEvent,
     onClickBackHandler: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
@@ -64,7 +65,7 @@ fun PokemonInfo(
     }
 
     BackHandler {
-       // onClickBackHandler()
+        onClickBackHandler()
     }
 
     Log.d("state", "${state.namePokemon}") // Позиция вывода логов может быть важна
@@ -82,6 +83,7 @@ fun PokemonInfo(
                     .offset(y = 10.dp)
             )
             Text(text = "Pokemon: ${name.name}")
+            Text(text = "Pokemon strong: ${name.strong.name}")
             if (state.stats.isNotEmpty()) { // Проверка на наличие статистики
                 PokemonBaseStats(pokemonInfo = state.stats)
                 Button(onClick = { onClickBackHandler() }) {
@@ -164,9 +166,11 @@ fun PokemonBaseStats(
         pokemonInfo.maxOf { it.baseStat }
     }
 
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .padding(8.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
         Text(
             text = "Base stats:",
             fontSize = 20.sp,

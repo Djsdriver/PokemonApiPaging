@@ -10,10 +10,11 @@ import com.example.pokemon.domain.model.Result
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
+
 @Stable
 data class State(
     val list: Flow<PagingData<Result>> = flowOf(PagingData.empty()),
-    val namePokemon: String = "",
-    val url: String = "",
-    val number: Int = 0,
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null
 )
+

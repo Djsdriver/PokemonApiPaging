@@ -8,6 +8,7 @@ import com.example.pokemon.data.models.PokemonListDto
 import com.example.pokemon.data.models.ResultDto
 import com.example.pokemon.domain.model.Result
 import com.example.pokemon.utils.toResult
+import java.io.IOException
 import javax.inject.Inject
 
 class PokemonPagingSource @Inject constructor(
@@ -37,6 +38,7 @@ class PokemonPagingSource @Inject constructor(
                 nextKey = page + PAGE_SIZE,
                 prevKey = if (page == 0) null else page - PAGE_SIZE
             )
+            //LoadResult.Error(IOException())
         } catch (e: Exception) {
             Log.e("PokemonPagingSource", "Error loading data", e)
             LoadResult.Error(e)

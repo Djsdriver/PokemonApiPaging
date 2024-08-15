@@ -1,19 +1,20 @@
 package com.example.pokemon.navigation
 
-import androidx.compose.animation.core.withInfiniteAnimationFrameNanos
+import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.runtime.Composable
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.example.pokemon.domain.PokemonDetails
+import com.example.pokemon.domain.Strong
 import com.example.pokemon.presentation.PokemonInfo
-import com.example.pokemon.presentation.PokemonInfoViewModel
-import com.example.pokemon.presentation.PokemonList
-import com.example.pokemon.presentation.PokemonListScreenViewModel
 import com.example.pokemon.presentation.PokemonListView
+import com.example.pokemon.utils.CustomNavType
+import kotlin.reflect.typeOf
 
 @Composable
 fun RootGraph(navController: NavHostController) {
@@ -25,30 +26,48 @@ fun RootGraph(navController: NavHostController) {
         pokemonHomeList(navController)
         pokemonInfo(navController)
     }
+    ShowBackStack(navController = navController)
 }
 
-fun NavGraphBuilder.pokemonHomeList(navController: NavHostController){
+fun NavGraphBuilder.pokemonHomeList(navController: NavHostController) {
     composable<PokemonListHome> {
-        val viewModel = hiltViewModel<PokemonListScreenViewModel>()
         PokemonListView(
-            onClick = { name -> navController.navigate(name){
-                launchSingleTop = true
-            } },
-            viewModel = viewModel,
-            onEvent = viewModel::onEvent
+            onClick = { name ->
+                navController.navigate(name) {
+                    launchSingleTop = true
+                }
+            }
         )
     }
 }
 
 
-
 fun NavGraphBuilder.pokemonInfo(navController: NavHostController) {
-    composable<PokemonDetails>{ backStackEntry ->
-        val viewModel = hiltViewModel<PokemonInfoViewModel>()
-        val name : PokemonDetails = backStackEntry.toRoute()
-        PokemonInfo(name,viewModel, viewModel::onEvent){
+    composable<PokemonDetails>(
+        typeMap = mapOf(
+            typeOf<PokemonDetails>() to CustomNavType.PokemonDetailsType,
+            typeOf<Strong>() to NavType.EnumType(Strong::class.java)
+        )
+    ) { backStackEntry ->
+        val name: PokemonDetails = backStackEntry.toRoute()
+        PokemonInfo(name) {
             navController.navigateUp()
         }
     }
 }
+
+
+@SuppressLint("RestrictedApi")
+@Composable
+fun ShowBackStack(navController: NavHostController) {
+    navController.addOnDestinationChangedListener { controller, _, _ ->
+        val routes = controller
+            .currentBackStack.value
+            .map { it.destination.route }
+            .joinToString(", ")
+
+        Log.d("BackStackLog", "BackStack: $routes")
+    }
+}
+
 

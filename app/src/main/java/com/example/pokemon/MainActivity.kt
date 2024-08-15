@@ -28,7 +28,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val viewmodel = hiltViewModel<PokemonListScreenViewModel>()
             val navController = rememberNavController()
             PokemonTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) {
